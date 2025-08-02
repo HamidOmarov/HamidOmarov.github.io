@@ -137,7 +137,7 @@
                 activeNoteIndex = -1;
                 return;
             }
-            const apiUrl = "https://74ba3706d6bd.ngrok-free.app/generate";
+            const apiUrl = "https://huggingface.co/spaces/HamidOmarov/neural-sonata-api";
             const requestData = { text: inputText };
             oscillators.forEach(osc => osc.stop());
             oscillators = [];
@@ -168,4 +168,5 @@
         class Particle { constructor(x, y) { this.pos = createVector(x, y); this.vel = p5.Vector.random2D().mult(random(0.5, 3)); this.lifespan = 255; } update() { this.pos.add(this.vel); this.lifespan -= 4; } display() { noStroke(); fill(255, this.lifespan); ellipse(this.pos.x, this.pos.y, 4, 4); } isDead() { return this.lifespan < 0; } }
     </script>
 </body>
+
 </html>

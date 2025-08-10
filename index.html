@@ -1,39 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Neural Sonata</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/addons/p5.sound.min.js"></script>
     <style>
+        :root {
+            --bg: #111;
+            --fg: #fff;
+            --muted: rgba(255,255,255,.7);
+            --panel: rgba(255,255,255,.06);
+            --border: rgba(255,255,255,.2);
+            --accent: #7dd3fc;
+        }
+        * { box-sizing: border-box; }
         body {
-            padding: 0;
-            margin: 0;
-            background-color: #111;
-            color: white;
+            padding: 0; margin: 0;
+            background-color: var(--bg);
+            color: var(--fg);
             font-family: 'Courier New', Courier, monospace;
             overflow: hidden;
         }
         #text-input {
             position: absolute;
-            top: 20px;
-            left: 50%;
+            top: 20px; left: 50%;
             transform: translateX(-50%);
-            width: 80%;
-            max-width: 600px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            font-size: 1.2em;
-            padding: 10px;
-            text-align: center;
-            border-radius: 5px;
+            width: 80%; max-width: 600px;
+            background-color: rgba(255,255,255,0.1);
+            border: 1px solid var(--border);
+            color: var(--fg);
+            font-size: 1.2em; padding: 10px;
+            text-align: center; border-radius: 8px;
+            z-index: 2;
+        }
+        /* Project toggle button */
+        #toggle-projects {
+            position: absolute;
+            top: 20px; right: 20px;
+            z-index: 3;
+            padding: 10px 14px;
+            background: var(--panel);
+            color: var(--fg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            backdrop-filter: blur(6px);
+        }
+        #toggle-projects:hover { border-color: var(--accent); }
+
+        /* Project panel */
+        #project-panel {
+            position: absolute;
+            top: 70px; right: 20px;
+            width: 360px; max-width: calc(100% - 40px);
+            max-height: calc(100vh - 90px);
+            overflow: auto;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            z-index: 3;
+            backdrop-filter: blur(8px);
+            display: none;
+        }
+        #project-panel.open { display: block; }
+        #project-panel h2 {
+            margin: 0 0 8px; font-size: 18px; color: var(--fg);
+        }
+        #project-panel p { margin: 8px 0; color: var(--muted); }
+        #project-panel a {
+            color: var(--accent); text-decoration: none;
+            word-break: break-word;
+        }
+        #project-panel a:hover { text-decoration: underline; }
+        #links { margin: 10px 0 0; padding: 0 0 0 16px; }
+        #links li { margin: 6px 0; }
+        .small {
+            font-size: 12px; color: var(--muted); margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <input type="text" id="text-input" value="The future of AI is" placeholder="Type something in English...">
+    <!-- Text prompt -->
+    <input type="text" id="text-input" value="The future of AI is" placeholder="Type something in English..." />
+
+    <!-- Projects toggle + panel (portfolio card lives here) -->
+    <button id="toggle-projects" aria-expanded="false" aria-controls="project-panel">Projects ▸</button>
+    <div id="project-panel" aria-hidden="true">
+        <h2>FastAPI RAG API</h2>
+        <p>Vector search on PDFs with robust fallbacks (AZ→EN).</p>
+
+        <ul id="links">
+            <li>Live UI (Dashboard): <a target="_blank" rel="noopener" href="https://huggingface.co/spaces/HamidOmarov/RAG-Dashboard">HF Space</a></li>
+            <li>Live API: <a target="_blank" rel="noopener" href="https://huggingface.co/spaces/HamidOmarov/FastAPI-RAG-API">HF Space</a></li>
+            <li>Repo (API): <a target="_blank" rel="noopener" href="https://github.com/HamidOmarov/fastapi-rag-api">github.com/HamidOmarov/fastapi-rag-api</a></li>
+            <li>Repo (Dashboard): <a target="_blank" rel="noopener" href="https://github.com/HamidOmarov/rag-dashboard">github.com/HamidOmarov/rag-dashboard</a></li>
+        </ul>
+
+        <p class="small">Tech: FastAPI, FAISS, sentence-transformers, pdfminer, Hugging Face Spaces</p>
+    </div>
+
+    <script>
+        // --- Portfolio panel toggle (non-p5)
+        (function () {
+            const btn = document.getElementById('toggle-projects');
+            const panel = document.getElementById('project-panel');
+            function toggle() {
+                const open = panel.classList.toggle('open');
+                btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                panel.setAttribute('aria-hidden', open ? 'false' : 'true');
+                btn.textContent = open ? 'Projects ▾' : 'Projects ▸';
+            }
+            btn.addEventListener('click', toggle);
+        })();
+    </script>
 
     <script>
         let sonataData = null;
@@ -43,7 +125,7 @@
         let noteInterval = 15;
         let activeNoteIndex = -1;
         let particles = [];
-        const pentatonicScale = [ 261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00, 1046.50, 1174.66, 1318.51, 1567.98, 1760.00 ];
+        const pentatonicScale = [261.63,293.66,329.63,392.00,440.00,523.25,587.33,659.25,783.99,880.00,1046.50,1174.66,1318.51,1567.98,1760.00];
 
         function setup() {
             createCanvas(windowWidth, windowHeight);
@@ -126,7 +208,7 @@
                 text("Sonata Yüklənir... Səsi aktivləşdirmək üçün klikləyin.", width / 2, height / 2);
             }
         }
-        
+
         function mousePressed() { if (getAudioContext().state !== 'running') { userStartAudio(); } }
 
         async function getSonataData(inputText) {
@@ -143,7 +225,11 @@
             oscillators = [];
             activeNoteIndex = -1;
             try {
-                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestData) });
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestData)
+                });
                 if (!response.ok) throw new Error(`HTTP xətası! Status: ${response.status}`);
                 sonataData = await response.json();
                 if (sonataData && sonataData.length > 0) {
@@ -162,14 +248,19 @@
                 console.error("❌ API ilə əlaqə zamanı xəta:", error);
             }
         }
-        
+
         function windowResized() { resizeCanvas(windowWidth, windowHeight); }
 
-        class Particle { constructor(x, y) { this.pos = createVector(x, y); this.vel = p5.Vector.random2D().mult(random(0.5, 3)); this.lifespan = 255; } update() { this.pos.add(this.vel); this.lifespan -= 4; } display() { noStroke(); fill(255, this.lifespan); ellipse(this.pos.x, this.pos.y, 4, 4); } isDead() { return this.lifespan < 0; } }
+        class Particle {
+            constructor(x, y) {
+                this.pos = createVector(x, y);
+                this.vel = p5.Vector.random2D().mult(random(0.5, 3));
+                this.lifespan = 255;
+            }
+            update() { this.pos.add(this.vel); this.lifespan -= 4; }
+            display() { noStroke(); fill(255, this.lifespan); ellipse(this.pos.x, this.pos.y, 4, 4); }
+            isDead() { return this.lifespan < 0; }
+        }
     </script>
 </body>
-
 </html>
-
-
-
